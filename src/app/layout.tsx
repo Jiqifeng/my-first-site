@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { ThemeProvider } from "@/components/ThemeProvider";
+import { AppProviders } from "@/components/AppProviders";
 import { Header } from "@/components/Header";
 
 export const metadata: Metadata = {
-  title: "Nova · 产品介绍",
-  description: "极简苹果风格的多产品展示站",
+  title: "Gallery Hub · 邀请制图片站",
+  description: "登录后可访问的图片展示网站，支持管理员上传与邀请码注册。",
 };
 
 export default function RootLayout({
@@ -16,10 +16,10 @@ export default function RootLayout({
   return (
     <html lang="zh-CN" suppressHydrationWarning>
       <body className="font-sans antialiased">
-        <ThemeProvider>
+        <AppProviders>
           <Header />
           {children}
-        </ThemeProvider>
+        </AppProviders>
       </body>
     </html>
   );
