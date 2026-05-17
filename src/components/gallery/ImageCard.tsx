@@ -12,13 +12,13 @@ export function ImageCard({ id, title, previewUrl, uploadedAt }: ImageCardProps)
   return (
     <article className="group overflow-hidden rounded-2xl border border-glass-border bg-glass">
       <Link href={`/image/${id}`} className="block">
-        <div className="relative aspect-[4/3] overflow-hidden">
+        <div className="relative aspect-[4/3] overflow-hidden bg-black/5 dark:bg-white/5">
           <Image
             src={previewUrl}
             alt={title}
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            className="object-cover transition duration-300 group-hover:scale-[1.02]"
+            className="object-contain p-2 transition duration-300 group-hover:scale-[1.02]"
           />
         </div>
         <div className="space-y-1 p-4">

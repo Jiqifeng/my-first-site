@@ -30,8 +30,15 @@ export default async function ImageDetailPage({ params }: { params: Promise<{ id
       </Link>
 
       <section className="mt-6 overflow-hidden rounded-3xl border border-glass-border bg-glass">
-        <div className="relative aspect-[16/10] w-full">
-          <Image src={item.hdImageUrl} alt={item.title} fill className="object-cover" sizes="100vw" priority />
+        <div className="relative aspect-[16/10] w-full bg-black/5 p-4 dark:bg-white/5">
+          <Image
+            src={item.hdImageUrl}
+            alt={item.title}
+            fill
+            className="object-contain p-2"
+            sizes="100vw"
+            priority
+          />
         </div>
       </section>
 
