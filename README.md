@@ -1,13 +1,13 @@
 # Gallery Hub · 邀请制图片展示站
 
-该项目基于 Next.js 15（App Router）实现，定位为登录后可访问的图片内容平台，支持邀请码注册、邮箱登录、管理员上传与发布管理。
+基于 Next.js 15（App Router）构建的会员图片站：邀请码注册、邮箱密码登录、管理员上传与发布、普通用户登录后浏览已发布内容。
 
 ## 功能范围（第一期）
 
 - 邀请码注册（一次性）
-- 邮箱密码登录与会话管理
-- 登录后访问图片流与图片详情
-- 管理员后台：
+- 邮箱密码登录与会话管理（NextAuth）
+- 图片流首页与图片详情页
+- 管理后台：
   - 图片上传（Cloudinary 直传）
   - 图片状态管理（draft / published / archived）
   - 邀请码生成与查询
@@ -16,54 +16,79 @@
 
 - Next.js 15 + React 19 + TypeScript
 - NextAuth（Credentials）
-- Prisma + PostgreSQL
+- Prisma + PostgreSQL（推荐 Neon）
 - Tailwind CSS
-- Cloudinary（图片上传）
+- Cloudinary（媒体存储与上传）
 
-## 本地运行
+## 环境变量
 
-1. 安装依赖
+复制模板：
+
+```bash
+cp .env.example .env.local
+```
+
+必填变量：
+
+- `DATABASE_URL`
+- `NEXTAUTH_URL`
+- `NEXTAUTH_SECRET`
+- `CLOUDINARY_CLOUD_NAME`
+- `CLOUDINARY_API_KEY`
+- `CLOUDINARY_API_SECRET`
+- `CLOUDINARY_UPLOAD_FOLDER`
+
+可选变量（seed）：
+
+- `SEED_ADMIN_EMAIL`
+- `SEED_ADMIN_PASSWORD`
+- `SEED_INVITE_CODE`
+
+## 本地启动
 
 ```bash
 npm install
-```
-
-2. 配置环境变量
-
-```bash
-cp .env.example .env
-```
-
-3. 生成 Prisma Client 并执行迁移
-
-```bash
 npm run prisma:generate
 npm run prisma:migrate
-```
-
-4. 初始化管理员和邀请码（可选）
-
-```bash
 npm run db:seed
-```
-
-5. 启动开发服务器
-
-```bash
 npm run dev
 ```
 
-打开 [http://localhost:3000](http://localhost:3000)。
+访问 [http://localhost:3000](http://localhost:3000)。
 
 ## 关键路由
 
-- 公开路由：`/login`、`/register`
+- 公开：`/login`、`/register`
 - 登录后：`/`、`/image/[id]`、`/profile`
 - 管理员：`/admin/upload`、`/admin/images`、`/admin/invites`
 
-## 部署建议（Vercel）
+## 部署（Vercel + Neon）
 
-- Web 与 API 部署在 Vercel
-- 数据库建议使用 Neon Postgres
-- 图片采用 Cloudinary 直传，避免经过 Vercel 函数中转
-- 在 Vercel 中配置 `.env.example` 里所有变量
+1. 推送代码到 GitHub（`main` 或 PR 分支）
+2. 在 Vercel 项目中配置环境变量（Production/Preview）
+3. 触发 Redeploy
+4. 将迁移应用到 Neon：
+
+```bash
+DATABASE_URL="your_neon_url" npx prisma migrate deploy
+```
+
+5. （可选）初始化管理员与邀请码：
+
+```bash
+DATABASE_URL="your_neon_url" npm run db:seed
+```
+
+## 验收清单（最小）
+
+- 游客访问 `/` 会跳转 `/login`
+- 邀请码注册成功后不可复用
+- 管理员可上传并发布图片
+- 普通用户可浏览已发布图片
+- 普通用户无法访问 `/admin/*`
+
+## 安全提醒
+
+- 不要提交任何真实密钥（`.env*`、`vercel.env` 已在 `.gitignore`）
+- `NEXTAUTH_SECRET` 与 `CLOUDINARY_API_SECRET` 仅放本地和平台环境变量
+- seed 改密完成后建议移除 `SEED_ADMIN_PASSWORD`
