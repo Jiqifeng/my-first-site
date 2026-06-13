@@ -28,7 +28,7 @@ export async function PATCH(
       return NextResponse.json({ message: "状态参数错误" }, { status: 400 });
     }
 
-    const image = await db.imageItem.update({
+    const album = await db.album.update({
       where: { id },
       data: {
         status: statusMap[parsed.data.status],
@@ -36,7 +36,7 @@ export async function PATCH(
       },
     });
 
-    return NextResponse.json({ item: image });
+    return NextResponse.json({ item: album });
   } catch (error) {
     if (error instanceof Error && error.message === "FORBIDDEN") {
       return NextResponse.json({ message: "无权限" }, { status: 403 });

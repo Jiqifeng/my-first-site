@@ -7,7 +7,7 @@ export async function GET() {
   try {
     await requireUserSession();
 
-    const items = await db.imageItem.findMany({
+    const albums = await db.album.findMany({
       where: {
         status: ImageStatus.PUBLISHED,
       },
@@ -15,15 +15,36 @@ export async function GET() {
         id: true,
         title: true,
         description: true,
-        hdImageUrl: true,
-        previewUrl: true,
         uploadedAt: true,
+        images: {
+          select: {
+            previewUrl: true,
+          },
+          orderBy: {
+            sortOrder: "asc",
+          },
+          take: 1,
+        },
+        _count: {
+          select: {
+            images: true,
+          },
+        },
       },
       orderBy: {
         uploadedAt: "desc",
       },
       take: 60,
     });
+
+    const items = albums.map((album) => ({
+      id: album.id,
+      title: album.title,
+      description: album.description,
+      uploadedAt: album.uploadedAt,
+      previewUrl: album.images[0]?.previewUrl ?? "",
+      imageCount: album._count.images,
+    }));
 
     return NextResponse.json({ items });
   } catch {

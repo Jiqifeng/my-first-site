@@ -1,20 +1,18 @@
 import { NextResponse } from "next/server";
-import { v2 as cloudinary } from "cloudinary";
 import { requireAdminSession } from "@/lib/auth-guard";
-
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
+import { cloudinary, isCloudinaryConfigured } from "@/lib/cloudinary";
 
 export async function POST() {
   try {
     await requireAdminSession();
 
-    if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+    if (!isCloudinaryConfigured()) {
       return NextResponse.json({ message: "Cloudinary 环境变量未配置" }, { status: 500 });
     }
+
+    const apiSecret = process.env.CLOUDINARY_API_SECRET!;
+    const cloudName = process.env.CLOUDINARY_CLOUD_NAME!;
+    const apiKey = process.env.CLOUDINARY_API_KEY!;
 
     const timestamp = Math.floor(Date.now() / 1000);
     const folder = process.env.CLOUDINARY_UPLOAD_FOLDER ?? "my-first-site/images";
@@ -23,15 +21,15 @@ export async function POST() {
         timestamp,
         folder,
       },
-      process.env.CLOUDINARY_API_SECRET,
+      apiSecret,
     );
 
     return NextResponse.json({
       timestamp,
       signature,
       folder,
-      cloudName: process.env.CLOUDINARY_CLOUD_NAME,
-      apiKey: process.env.CLOUDINARY_API_KEY,
+      cloudName,
+      apiKey,
     });
   } catch (error) {
     if (error instanceof Error && error.message === "FORBIDDEN") {

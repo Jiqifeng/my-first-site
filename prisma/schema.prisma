@@ -19,16 +19,16 @@ enum ImageStatus {
 }
 
 model User {
-  id            String       @id @default(cuid())
-  email         String       @unique
-  passwordHash  String
-  role          Role         @default(USER)
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
-  sessions      Session[]
-  accounts      Account[]
-  uploadedItems ImageItem[]  @relation("UploadedBy")
-  usedInvite    InviteCode?  @relation("UsedBy")
+  id             String       @id @default(cuid())
+  email          String       @unique
+  passwordHash   String
+  role           Role         @default(USER)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  sessions       Session[]
+  accounts       Account[]
+  uploadedAlbums Album[]      @relation("UploadedAlbums")
+  usedInvite     InviteCode?  @relation("UsedBy")
   createdInvites InviteCode[] @relation("CreatedBy")
 }
 
@@ -46,20 +46,31 @@ model InviteCode {
   createdBy    User      @relation("CreatedBy", fields: [createdById], references: [id])
 }
 
-model ImageItem {
+model Album {
   id           String      @id @default(cuid())
   title        String
   description  String?
-  hdImageUrl   String
-  previewUrl   String
-  publicId     String
   status       ImageStatus @default(DRAFT)
   uploadedAt   DateTime    @default(now())
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
   publishedAt  DateTime?
   uploadedById String
-  uploadedBy   User        @relation("UploadedBy", fields: [uploadedById], references: [id])
+  uploadedBy   User        @relation("UploadedAlbums", fields: [uploadedById], references: [id])
+  images       ImageItem[]
+}
+
+model ImageItem {
+  id         String   @id @default(cuid())
+  albumId    String
+  album      Album    @relation(fields: [albumId], references: [id], onDelete: Cascade)
+  hdImageUrl String
+  previewUrl String
+  publicId   String
+  sortOrder  Int      @default(0)
+  uploadedAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
 
 model Account {

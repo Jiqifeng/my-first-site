@@ -7,9 +7,9 @@ type GalleryApiItem = {
   id: string;
   title: string;
   description: string | null;
-  hdImageUrl: string;
   previewUrl: string;
   uploadedAt: string;
+  imageCount: number;
 };
 
 export function GalleryFeed() {
@@ -20,14 +20,14 @@ export function GalleryFeed() {
   useEffect(() => {
     async function loadItems() {
       try {
-        const response = await fetch("/api/images", { cache: "no-store" });
+        const response = await fetch("/api/albums", { cache: "no-store" });
         const payload = (await response.json()) as { items?: GalleryApiItem[]; message?: string };
         if (!response.ok) {
-          throw new Error(payload.message ?? "读取图片失败");
+          throw new Error(payload.message ?? "读取相册失败");
         }
         setItems(payload.items ?? []);
       } catch (fetchError) {
-        setError(fetchError instanceof Error ? fetchError.message : "读取图片失败");
+        setError(fetchError instanceof Error ? fetchError.message : "读取相册失败");
       } finally {
         setLoading(false);
       }
@@ -37,7 +37,7 @@ export function GalleryFeed() {
   }, []);
 
   if (loading) {
-    return <div className="rounded-2xl border border-glass-border bg-glass p-10 text-center text-ink-muted">图片加载中...</div>;
+    return <div className="rounded-2xl border border-glass-border bg-glass p-10 text-center text-ink-muted">相册加载中...</div>;
   }
 
   if (error) {
@@ -51,6 +51,7 @@ export function GalleryFeed() {
         title: item.title,
         previewUrl: item.previewUrl,
         uploadedAt: item.uploadedAt,
+        imageCount: item.imageCount,
       }))}
     />
   );

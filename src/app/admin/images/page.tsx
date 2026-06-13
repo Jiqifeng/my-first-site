@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-type AdminImageItem = {
+type AdminAlbumItem = {
   id: string;
   title: string;
   status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
@@ -11,17 +11,20 @@ type AdminImageItem = {
   uploadedBy: {
     email: string;
   };
+  _count: {
+    images: number;
+  };
 };
 
 export default function AdminImagesPage() {
-  const [items, setItems] = useState<AdminImageItem[]>([]);
+  const [items, setItems] = useState<AdminAlbumItem[]>([]);
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   async function fetchItems() {
     setLoading(true);
-    const response = await fetch("/api/admin/images");
-    const payload = (await response.json()) as { items?: AdminImageItem[]; message?: string };
+    const response = await fetch("/api/admin/albums");
+    const payload = (await response.json()) as { items?: AdminAlbumItem[]; message?: string };
     if (!response.ok) {
       setMessage(payload.message ?? "加载失败");
       setLoading(false);
@@ -36,7 +39,7 @@ export default function AdminImagesPage() {
   }, []);
 
   async function updateStatus(id: string, status: "draft" | "published" | "archived") {
-    const response = await fetch(`/api/admin/images/${id}/status`, {
+    const response = await fetch(`/api/admin/albums/${id}/status`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -52,10 +55,25 @@ export default function AdminImagesPage() {
     void fetchItems();
   }
 
+  async function deleteAlbum(id: string, title: string) {
+    if (!window.confirm(`确定要永久删除相册「${title}」吗？相册内所有图片将被一并删除，此操作不可恢复。`)) {
+      return;
+    }
+
+    const response = await fetch(`/api/admin/albums/${id}`, { method: "DELETE" });
+    const payload = (await response.json()) as { message?: string };
+    if (!response.ok) {
+      setMessage(payload.message ?? "删除失败");
+      return;
+    }
+    setMessage("相册已删除");
+    void fetchItems();
+  }
+
   return (
     <main className="mx-auto min-h-screen w-full max-w-6xl px-6 pb-16 pt-28">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-3xl font-semibold text-ink">图片管理</h1>
+        <h1 className="text-3xl font-semibold text-ink">相册管理</h1>
         <div className="flex gap-3">
           <Link
             href="/admin/upload"
@@ -79,6 +97,7 @@ export default function AdminImagesPage() {
           <thead className="bg-glass">
             <tr>
               <th className="px-4 py-3 text-left text-sm font-medium text-ink-muted">标题</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-ink-muted">图片数</th>
               <th className="px-4 py-3 text-left text-sm font-medium text-ink-muted">状态</th>
               <th className="px-4 py-3 text-left text-sm font-medium text-ink-muted">上传者</th>
               <th className="px-4 py-3 text-left text-sm font-medium text-ink-muted">创建时间</th>
@@ -88,20 +107,21 @@ export default function AdminImagesPage() {
           <tbody className="divide-y divide-glass-border bg-surface/60">
             {loading ? (
               <tr>
-                <td colSpan={5} className="px-4 py-6 text-center text-sm text-ink-muted">
+                <td colSpan={6} className="px-4 py-6 text-center text-sm text-ink-muted">
                   加载中...
                 </td>
               </tr>
             ) : items.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-4 py-6 text-center text-sm text-ink-muted">
-                  暂无图片
+                <td colSpan={6} className="px-4 py-6 text-center text-sm text-ink-muted">
+                  暂无相册
                 </td>
               </tr>
             ) : (
               items.map((item) => (
                 <tr key={item.id}>
                   <td className="px-4 py-3 text-sm text-ink">{item.title}</td>
+                  <td className="px-4 py-3 text-sm text-ink-muted">{item._count.images}</td>
                   <td className="px-4 py-3 text-sm text-ink-muted">{item.status}</td>
                   <td className="px-4 py-3 text-sm text-ink-muted">{item.uploadedBy.email}</td>
                   <td className="px-4 py-3 text-sm text-ink-muted">
@@ -129,6 +149,13 @@ export default function AdminImagesPage() {
                         className="rounded-lg border border-glass-border px-3 py-1 text-xs text-ink-muted"
                       >
                         归档
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => void deleteAlbum(item.id, item.title)}
+                        className="rounded-lg border border-red-500/40 px-3 py-1 text-xs text-red-500 transition hover:bg-red-500/10"
+                      >
+                        删除
                       </button>
                     </div>
                   </td>
